@@ -19,7 +19,7 @@ export type  State  ={
 const FormSchema = z.object({
     id: z.string(),
     customerId: z.string({
-        invalid_type_error:'please select a customer.'
+        invalid_type_error:'Please select a customer.'
     }),
     amount: z.coerce.number()
         .gt(0,{message : 'Please enter an amount greater than $0.'})

@@ -120,13 +120,21 @@ export default function Form({customers}: { customers: CustomerField[] }) {
                                 </label>
                             </div>
                         </div>
-                        <div id="status" aria-live="polite" aria-atomic="true">
-                            {state.errors?.status && state.errors.status.map((err: string) => (
-                                <p className="mt-2 text-sm text-red-500" key={err}>
-                                    {err}
-                                </p>
-                            ))}
-                        </div>
+
+                    </div>
+                    <div id="status" aria-live="polite" aria-atomic="true">
+                        {state.errors?.status && state.errors.status.map((err: string) => (
+                            <p className="mt-2 text-sm text-red-500" key={err}>
+                                {err}
+                            </p>
+                        ))}
+                    </div>
+                    <div  aria-live="polite" aria-atomic="true">
+                        {state.message &&   (
+                            <p className="mt-2 text-sm text-red-500" >
+                                {state.message}
+                            </p>
+                        ) }
                     </div>
                 </fieldset>
             </div>
