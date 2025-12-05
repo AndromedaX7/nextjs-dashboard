@@ -4,28 +4,31 @@ import {revalidatePath} from "next/cache";
 import {redirect} from "next/navigation";
 import postgres from "postgres";
 
+import {signIn} from "@/auth";
+import {AuthError} from "next-auth";
+
 const sql = postgres(process.env.POSTGRES_URL!, {ssl: "require"})
 
 
-export type  State  ={
-    errors?:{
+export type  State = {
+    errors?: {
         customerId?: string[],
-        amount ?: string[],
+        amount?: string[],
         status?: string[],
     },
-    message?:string| null
+    message?: string | null
 }
 
 const FormSchema = z.object({
     id: z.string(),
     customerId: z.string({
-        invalid_type_error:'Please select a customer.'
+        invalid_type_error: 'Please select a customer.'
     }),
     amount: z.coerce.number()
-        .gt(0,{message : 'Please enter an amount greater than $0.'})
+        .gt(0, {message: 'Please enter an amount greater than $0.'})
     ,
-    status: z.enum(['pending', 'paid'],{
-        invalid_type_error:'Please select an invoice status.'
+    status: z.enum(['pending', 'paid'], {
+        invalid_type_error: 'Please select an invoice status.'
     }),
     date: z.string(),
 })
@@ -35,14 +38,14 @@ const CreateInvoice = FormSchema.omit({id: true, date: true})
 
 const UpdateInvoice = FormSchema.omit({id: true, date: true})
 
-export async function createInvoice(preState :State , formData: FormData) {
-    const validatedFields  = CreateInvoice.safeParse({
+export async function createInvoice(preState: State, formData: FormData) {
+    const validatedFields = CreateInvoice.safeParse({
         customerId: formData.get('customerId'),
         amount: formData.get('amount'),
         status: formData.get('status'),
     })
 
-    if(!validatedFields.success){
+    if (!validatedFields.success) {
         return {
             errors: validatedFields.error.flatten().fieldErrors,
             message: 'Missing Fields. Failed to Create Invoice.',
@@ -69,14 +72,14 @@ export async function createInvoice(preState :State , formData: FormData) {
 }
 
 
-export async function updateInvoice( id: string,preState:State, formData: FormData) {
+export async function updateInvoice(id: string, preState: State, formData: FormData) {
     const validateField = UpdateInvoice.safeParse({
         customerId: formData.get('customerId'),
         amount: formData.get('amount'),
         status: formData.get('status'),
     })
 
-    if(!validateField.success){
+    if (!validateField.success) {
         return {
             errors: validateField.error.flatten().fieldErrors,
             message: 'Missing Fields. Failed to Update Invoice.',
@@ -103,6 +106,29 @@ export async function updateInvoice( id: string,preState:State, formData: FormDa
 }
 
 export async function deleteInvoice(id: string) {
-    await sql`DELETE FROM invoices WHERE id = ${id}`
+    await sql`DELETE
+              FROM invoices
+              WHERE id = ${id}`
     revalidatePath('/dashboard/invoices')
 }
+
+
+export async function authenticate(
+    preState: string | undefined,
+    formData: FormData
+) {
+    try {
+        await signIn('credentials', formData)
+    } catch (err) {
+        if (err instanceof AuthError) {
+            switch (err.type) {
+                case "CredentialsSignin":
+                    return "Invalid credentials."
+                default:
+                    return "Something went wrong."
+            }
+        }
+        throw err;
+    }
+}
+
