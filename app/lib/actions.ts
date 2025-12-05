@@ -1,5 +1,5 @@
 'use server';
-import {z} from 'zod';
+import {SafeParseReturnType, z} from 'zod';
 import {revalidatePath} from "next/cache";
 import {redirect} from "next/navigation";
 import postgres from "postgres";
@@ -68,13 +68,22 @@ export async function createInvoice(preState :State , formData: FormData) {
     redirect('/dashboard/invoices')
 }
 
-export async function updateInvoice(id: string, formData: FormData) {
-    const {customerId, amount, status} = UpdateInvoice.parse({
+
+export async function updateInvoice( id: string,preState:State, formData: FormData) {
+    const validateField = UpdateInvoice.safeParse({
         customerId: formData.get('customerId'),
         amount: formData.get('amount'),
         status: formData.get('status'),
     })
 
+    if(!validateField.success){
+        return {
+            errors: validateField.error.flatten().fieldErrors,
+            message: 'Missing Fields. Failed to Update Invoice.',
+        }
+    }
+
+    const {customerId, amount, status} = validateField.data;
     const amountInCents = amount * 100
 
     try {
