@@ -7,7 +7,7 @@ import postgres from "postgres";
 import {User} from "@/app/lib/definitions";
 import bcrypt from "bcrypt";
 
-const sql =postgres(process.env.POSTGRES_URL!,{ssl:"require"});
+const sql =postgres(process.env.POSTGRES_URL!/*,{ssl:"require"}*/);
 
 export const {auth ,signIn ,signOut} = NextAuth({...authConfig,
     providers:[Credentials({
