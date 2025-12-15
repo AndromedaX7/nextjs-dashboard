@@ -47,7 +47,7 @@ export async function createInvoice(preState: State, formData: FormData) {
 
     if (!validatedFields.success) {
         return {
-            errors: validatedFields.error.flatten().fieldErrors,
+            errors: z.treeifyError(validatedFields.error).errors,
             message: 'Missing Fields. Failed to Create Invoice.',
         }
     }
